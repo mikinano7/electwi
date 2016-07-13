@@ -1,0 +1,13 @@
+body {
+    overflow: hidden;
+}
+
+div#draggable {
+    padding-top: 15px;
+
+    -webkit-app-region: drag;
+}
+
+textarea {
+    -webkit-app-region: no-drag;
+}
