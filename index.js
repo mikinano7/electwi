@@ -20,7 +20,14 @@ app.on('window-all-closed', function() {
 });
 
 app.on('ready', function() {
-    win = new BrowserWindow({width: 160, height: 120, frame: false, resizable: false, transparent: true});
+    win = new BrowserWindow({
+        width: 160,
+        height: 120,
+        frame: false,
+        resizable: false,
+        transparent: true
+    });
+    win.setAlwaysOnTop(true);
     win.loadURL('file://' + __dirname + '/index.html');
 
     globalShortcut.register('ctrl+enter', function() {
