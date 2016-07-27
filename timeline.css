@@ -1,0 +1,7 @@
+html {
+    background-color: transparent;
+}
+
+div#draggable {
+    -webkit-app-region: drag;
+}
