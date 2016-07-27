@@ -1,7 +1,7 @@
 'use strict';
 
 const Electron = require('electron');
-const {app, BrowserWindow, globalShortcut, ipcMain} = Electron;
+const {app, BrowserWindow, ipcMain} = Electron;
 const Config = require('config');
 const Twitter = require('twitter');
 
@@ -29,10 +29,6 @@ app.on('ready', function() {
     });
     win.setAlwaysOnTop(true);
     win.loadURL('file://' + __dirname + '/index.html');
-
-    globalShortcut.register('ctrl+enter', function() {
-        win.webContents.send('tw', 'send request');
-    });
 
     win.on('closed', function() {
         win = null;

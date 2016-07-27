@@ -9,5 +9,7 @@ div#draggable {
 }
 
 textarea {
+    background-color: transparent;
+
     -webkit-app-region: no-drag;
 }
