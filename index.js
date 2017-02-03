@@ -3,18 +3,14 @@
 const Electron = require('electron');
 const {app, BrowserWindow, ipcMain} = Electron;
 const Config = require('config');
+const fs = require('fs');
 const Twitter = require('twitter');
 
-const client = new Twitter({
-    consumer_key: Config.consumer_key,
-    consumer_secret: Config.consumer_secret,
-    access_token_key: Config.access_token_key,
-    access_token_secret: Config.access_token_secret
-});
-const tlClient = client;
-
+let client;
 let win;
 let tlWin;
+let authWin;
+let twitterWin;
 
 app.on('window-all-closed', function() {
     if (process.platform != 'darwin')
@@ -31,6 +27,25 @@ app.on('ready', function() {
     });
     win.setAlwaysOnTop(true);
     win.loadURL('file://' + __dirname + '/index.html');
+
+    fs.stat('config/tokens.json', function(err, stat){
+        if (err == null) {
+            const twitterTokens = JSON.parse(fs.readFileSync('config/tokens.json', 'utf8'));
+            client = new Twitter({
+                consumer_key: Config.consumer_key,
+                consumer_secret: Config.consumer_secret,
+                access_token_key: twitterTokens.oauth_access_token,
+                access_token_secret: twitterTokens.oauth_access_token_secret
+            });
+        } else {
+            authWin = new BrowserWindow({width: 600, height: 300});
+            authWin.loadURL('file://' + __dirname + '/authenticate.html');
+
+            authWin.on('closed', function() {
+                authWin = null;
+            });
+        }
+    });
 
     win.on('closed', function() {
         win = null;
@@ -59,7 +74,7 @@ app.on('ready', function() {
             tlWin = null;
         });
 
-        tlClient.stream('user', null, function(stream) {
+        client.stream('user', null, function(stream) {
             stream.on('data', function(data) {
                 streamObj = stream;
                 if (data.text !== undefined) {
@@ -67,5 +82,26 @@ app.on('ready', function() {
                 }
             });
         });
+    });
+
+    // TwitterのPINコード認証ページ
+    ipcMain.on('input_pin', function(event, arg){
+        twitterWin = new BrowserWindow({width: 800, height: 600});
+        twitterWin.loadURL('https://twitter.com/oauth/authenticate?oauth_token=' + arg);
+
+        twitterWin.on('closed', function(){
+            twitterWin = null;
+        });
+    });
+
+    // Twitterのトークン書き込み
+    ipcMain.on('tokens', function(event, arg){
+        if (twitterWin != null) {
+            twitterWin.close();
+        }
+        authWin.close();
+
+        fs.writeFile('config/tokens.json', JSON.stringify(arg));
+        win.reload();
     });
 });
